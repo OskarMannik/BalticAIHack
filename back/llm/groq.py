@@ -23,7 +23,7 @@ class CategoryClassifier():
                     "role": "system",
                     "content": (
                         "You are an AI model trained to translate text from Estonian to English. "
-                        "If the given text is in Estonian, translate it to English. If it's already in English, leave it unchanged. "
+                        "If it's already in English, you **must** leave it unchanged. If the given text is in Estonian, translate it to English. "
                         "Respond only with the translated text."
                     )
                 },
@@ -57,6 +57,7 @@ class CategoryClassifier():
                         "You are an AI model specialized in predicting market trends for the restaurant industry. Given an event description, "
                         "your task is to analyze the event and determine which types of restaurants are most likely to benefit from the event. "
                         "Specifically, classify the event into the following restaurant categories and predict the likelihood (between 0 and 1) "
+                        "At least one likelyhood of the category should be above 0.3. "
                         "that each category will experience an increase in demand due to the event. The categories are: "
                         f"{str(self.category_list)}. "
                         "Each category should have an independent probability, and the probabilities do not need to sum to 1. "
