@@ -1,13 +1,12 @@
-import EventCard from "@/components/event_card";
 import { EventProps } from "@/model/event";
 
+export default function EventPage({ params }: { params: { eventID: string } }) {
+  const eventID = params.eventID;
 
-
-export default function Home() {
-
-  const hcevent: EventProps = {
+  // later fetch through eventID
+  const eventData: EventProps = {
     id: "fd23fce0-c438-4a27-aae5-878ac0c54da1",
-    name: "HTG rebaste ristimine",
+    name: "New event",
     startTime: 1728054000,
     endTime: 1728064800,
     location: "Munga 12, 51007 Tartu, Estonia",
@@ -19,26 +18,15 @@ export default function Home() {
         labelColor: "#32a852"
       }
     ],
-    relevance: 0.4
+    relevance: 0.85
   };
 
-  const events: EventProps[] = new Array(8).fill(hcevent);
-
-  return (
-    <div className="flex flex-col px-60 w-screen h-screen bg-white">
-
-        <h1 className="text-black text-4xl pt-24">Demandify</h1>
-        <h2 className="text-black text-2xl pt-8">Upcoming events:</h2>
-        <p className="text-gray-700">Events, we think would be useful for you</p>
-        <div className="flex flex-row pt-4 overflow-x-scroll">
-        {
-          events.map((event: EventProps, i) => {
-            return EventCard(event);
-          }
-          )
-        }
-        </div>
-
+  return <div className="flex flex-row px-60 pt-24 w-screen h-screen bg-white">
+    <div className="flex flex-col  w-1/2 h-full">
+      <h1 className="text-black text-5xl">{eventData.name}</h1>
     </div>
-  );
+    <div className="flex flex-col  w-1/2 h-full">
+      <h2 className="text-black text-3xl">Here's what can happen:</h2>
+    </div>
+  </div>
 }

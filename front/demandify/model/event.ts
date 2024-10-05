@@ -1,4 +1,10 @@
+export interface LabelProps {
+    labelName: string;
+    labelColor: string; // hex code for that label
+}
+
 export interface EventProps {
+    id: string;
     name: string;
     startTime: number; // as unix timestamp
     endTime: number; // as unix timestamp
@@ -7,4 +13,6 @@ export interface EventProps {
 
     description: string; // ai generated short description of the event
     coverImageURL: string;
+    relevance: number; // float 0 - 1, that represents how relevant a task is
+    labels: LabelProps[];
 }
