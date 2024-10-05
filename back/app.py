@@ -159,6 +159,14 @@ def process_events():
             classification, database, threshold
         )
 
+        # **Print matching companies**
+        if matching_companies:
+            print("Matching Companies:")
+            for company, probability in matching_companies:
+                print(f" - {company}: {probability}")
+        else:
+            print("No matching companies found.")
+
         # Prepare the result for this event
         event_result = {
             'event': event,
@@ -188,14 +196,21 @@ def classify_event():
         return jsonify({"error": "Description field is required"}), 400
 
     # Classify the description using the CategoryClassifier
-    translated_desc = classifier.translate_to_english(description)#TEXT RANSLATION !!!!
-    classification = classifier.get_probabilities(translated_desc)#CLASSIFYING THE TEXT !!!!
+    classification = classifier.get_probabilities(description)
     print(f"Classification Results: {classification}")
 
     # Find matching companies based on the classification
     matching_companies = find_companies_with_probabilities_above_threshold(
         classification, database, threshold
     )
+
+    # **Print matching companies**
+    if matching_companies:
+        print("Matching Companies:")
+        for company, probability in matching_companies:
+            print(f" - {company}: {probability}")
+    else:
+        print("No matching companies found.")
 
     # Prepare the response
     results = [
