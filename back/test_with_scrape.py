@@ -1,199 +1,125 @@
-<<<<<<< HEAD
 import requests
-from llm import CategoryClassifier
-from typing import List, Tuple, Dict
+from bs4 import BeautifulSoup
+import re
+from flask import Flask, request, jsonify
+from typing import List, Dict
+from datetime import datetime
 
-# Define the restaurant categories
-categories = [
-    "fast food", "food truck", "casual dining", "fine dining", "takeout",
-    "italian", "chinese", "japanese", "thai", "sushi", "steakhouse", "burger",
-    "seafood", "vegan", "vegetarian", "romantic", "rooftop", "sports bar",
-    "outdoor dining", "breakfast", "café", "wine"
-]
-
-# Initialize the classifier with a translation function (if necessary)
-classifier = CategoryClassifier(category_list=categories, threshold=0.0)
-
-# Define a sample company database with company names and categories
-database = [
-    ("Burger World", ["fast food", "burger", "casual dining"]),
-    ("Sushi Heaven", ["sushi", "japanese", "fine dining"]),
-    ("Steak House", ["steakhouse", "fine dining", "rooftop"]),
-    ("Green Delight", ["vegan", "vegetarian", "organic"]),
-    ("Pizza Palace", ["italian", "casual dining", "takeout"]),
-    ("Seafood Shack", ["seafood", "fine dining", "outdoor dining"]),
-]
-
-# Function to find companies with probabilities above the given threshold
-def find_companies_with_probabilities_above_threshold(
-    classification: Dict[str, float],
-    database: List[Tuple[str, List[str]]],  # Companies have multiple categories
-    threshold: float
-) -> List[Tuple[str, float]]:
-    """
-    This function takes a classification dictionary, a database of companies (with multiple categories),
-    and a threshold. It returns the names of companies where any of their categories have a probability
-    above the given threshold. The result includes the company name and the highest relevant probability.
-    """
-    matching_companies = []
-
-    # Loop through the database, where each company has multiple categories
-    for company, categories in database:
-        # Initialize a list to store probabilities for this company's categories
-        relevant_probabilities = []
-
-        # Loop through the company's categories
-        for category in categories:
-            # Check if the category exists in the classification dictionary
-            if category in classification:
-                # Check if the probability for that category is above the threshold
-                if classification[category] >= threshold:
-                    relevant_probabilities.append(classification[category])
-
-        # If the company has relevant categories, calculate relevance (e.g., max probability)
-        if relevant_probabilities:
-            max_probability = max(relevant_probabilities)  # Using max probability for simplicity
-            matching_companies.append((company, max_probability))
-
-    return matching_companies
-
-# Function to process event descriptions from the /scrape endpoint
-def process_scrape_data(scrape_url: str, threshold: float):
-    # Fetch data from the /scrape endpoint
-    response = requests.get(scrape_url)
-    
-    # Check if the request was successful
-    if response.status_code == 200:
-        events = response.json()  # Assume the endpoint returns JSON data
+def scrape_events(url: str) -> List[Dict[str, str]]:
+    try:
+        # Make a request to the provided URL
+        response = requests.get(url)
+        response.raise_for_status()
         
-        for event in events:
-            title = event['title']
-            description = event['description']
-            link = event['link']
-            
-            print(f"Processing event: {title}")
-            
-            # Classify the description using the CategoryClassifier
-            classification = classifier.get_probabilities(description)
-            print(f"Classification Results: {classification}")
-            
-            # Find matching companies based on the classification
-            matching_companies = find_companies_with_probabilities_above_threshold(
-                classification, database, threshold
-            )
-            
-            # Output the results for each event
-            print(f"Companies with probabilities >= {threshold}:")
-            for company, probability in matching_companies:
-                print(f"{company}: {probability}")
-            
-            print("="*50)  # Separator between events
-    else:
-        print(f"Failed to fetch data from {scrape_url}. Status code: {response.status_code}")
-
-# Example usage
-scrape_url = "http://127.0.0.1:5000/scrape"
-threshold = 0.3
-
-# Process the event descriptions from the /scrape endpoint
-process_scrape_data(scrape_url, threshold)
-=======
-import requests
-from llm import CategoryClassifier
-from typing import List, Tuple, Dict
-
-# Define the restaurant categories
-categories = [
-    "fast food", "food truck", "casual dining", "fine dining", "takeout",
-    "italian", "chinese", "japanese", "thai", "sushi", "steakhouse", "burger",
-    "seafood", "vegan", "vegetarian", "romantic", "rooftop", "sports bar",
-    "outdoor dining", "breakfast", "café", "wine"
-]
-
-# Initialize the classifier with a translation function (if necessary)
-classifier = CategoryClassifier(category_list=categories, threshold=0.0)
-
-# Define a sample company database with company names and categories
-database = [
-    ("Burger World", ["fast food", "burger", "casual dining"]),
-    ("Sushi Heaven", ["sushi", "japanese", "fine dining"]),
-    ("Steak House", ["steakhouse", "fine dining", "rooftop"]),
-    ("Green Delight", ["vegan", "vegetarian", "organic"]),
-    ("Pizza Palace", ["italian", "casual dining", "takeout"]),
-    ("Seafood Shack", ["seafood", "fine dining", "outdoor dining"]),
-]
-
-# Function to find companies with probabilities above the given threshold
-def find_companies_with_probabilities_above_threshold(
-    classification: Dict[str, float],
-    database: List[Tuple[str, List[str]]],  # Companies have multiple categories
-    threshold: float
-) -> List[Tuple[str, float]]:
-    """
-    This function takes a classification dictionary, a database of companies (with multiple categories),
-    and a threshold. It returns the names of companies where any of their categories have a probability
-    above the given threshold. The result includes the company name and the highest relevant probability.
-    """
-    matching_companies = []
-
-    # Loop through the database, where each company has multiple categories
-    for company, categories in database:
-        # Initialize a list to store probabilities for this company's categories
-        relevant_probabilities = []
-
-        # Loop through the company's categories
-        for category in categories:
-            # Check if the category exists in the classification dictionary
-            if category in classification:
-                # Check if the probability for that category is above the threshold
-                if classification[category] >= threshold:
-                    relevant_probabilities.append(classification[category])
-
-        # If the company has relevant categories, calculate relevance (e.g., max probability)
-        if relevant_probabilities:
-            max_probability = max(relevant_probabilities)  # Using max probability for simplicity
-            matching_companies.append((company, max_probability))
-
-    return matching_companies
-
-# Function to process event descriptions from the /scrape endpoint
-def process_scrape_data(scrape_url: str, threshold: float):
-    # Fetch data from the /scrape endpoint
-    response = requests.get(scrape_url)
-    
-    # Check if the request was successful
-    if response.status_code == 200:
-        events = response.json()  # Assume the endpoint returns JSON data
+        # Parse the HTML content
+        soup = BeautifulSoup(response.text, 'html.parser')
         
-        for event in events:
-            title = event['title']
-            description = event['description']
-            link = event['link']
-            
-            print(f"Processing event: {title}")
-            
-            # Classify the description using the CategoryClassifier
-            classification = classifier.get_probabilities(description)
-            print(f"Classification Results: {classification}")
-            
-            # Find matching companies based on the classification
-            matching_companies = find_companies_with_probabilities_above_threshold(
-                classification, database, threshold
-            )
-            
-            # Output the results for each event
-            print(f"Companies with probabilities >= {threshold}:")
-            for company, probability in matching_companies:
-                print(f"{company}: {probability}")
-            
-            print("="*50)  # Separator between events
-    else:
-        print(f"Failed to fetch data from {scrape_url}. Status code: {response.status_code}")
+        # Find the concert list container
+        concert_list = soup.find('div', class_='concertslist_page events events_count_3')
+        
+        # Check if the concert list exists
+        if not concert_list:
+            print("No events found on the page")
+            return []
 
-# Example usage
-scrape_url = "http://127.0.0.1:5000/scrape"
-threshold = 0.3
+        events = concert_list.find_all('a', href=True)  # Find all anchor tags with href
+        
+        results = []
+        # Loop through each event
+        for idx, event in enumerate(events, start=0):
+            article_link = event['href']
+            full_article_link = requests.compat.urljoin(url, article_link)  # Build full URL
+            
+            # Request each article page
+            article_page = requests.get(full_article_link)
+            article_page.raise_for_status()
+            article_page_soup = BeautifulSoup(article_page.text, 'html.parser')
 
-# Process the event descriptions from the /scrape endpoint
-process_scrape_data(scrape_url, threshold)
->>>>>>> 42c737d6877248e94de836067f917b6e630ed95c
+            # Extract title
+            article_title = article_page_soup.find('h1')
+            if article_title:
+                article_title = article_title.get_text(strip=True)
+            else:
+                article_title = "No title available"
+
+            # Extract description
+            article_description = article_page_soup.find('div', class_='concert_details_description_description_inner')
+            if article_description:
+                article_description_text = article_description.get_text(strip=True)
+
+                # Split description into sentences and filter out unwanted URLs
+                sentences = re.split(r'(?<=[.!?])\s+', article_description_text)
+                clean_sentences = [
+                    sentence for sentence in sentences 
+                    if not re.search(r'(http[s]?://\S+|www\.\S+)', sentence)
+                ]
+                clean_description = ' '.join(clean_sentences)
+            else:
+                clean_description = "No description available"
+
+            # **Extract location**
+            location_tag = article_page_soup.find('a', class_='info_sidebar_component_content_title')
+            if location_tag:
+                location = location_tag.get_text(strip=True)
+            else:
+                location = "No location available"
+
+            # Extract detailed location if available
+            venue_link_tag = article_page_soup.find('a', class_='info_sidebar_component_content_title')
+            
+            if venue_link_tag:
+                venue_page_url = venue_link_tag['href']
+                
+                # Now fetch the venue page
+                venue_response = requests.get(venue_page_url)
+                if venue_response.status_code == 200:
+                    venue_soup = BeautifulSoup(venue_response.content, 'html.parser')
+                    # Find the span that contains the location details
+                    location_details = venue_soup.find_all('span', class_='venue_details_location_detail')
+                    # Concatenate the location details into a full address string
+                    if location_details:
+                        detailed_location = " ".join([detail.get_text(strip=True) for detail in location_details if detail.get_text(strip=True)])
+                        location = detailed_location if detailed_location else location
+
+            # **Extract event time**
+            event_datetime = None  # Initialize event_datetime as None
+            # Find the relevant tag that contains the time details
+            time_tag = article_page_soup.find('div', class_='concert_details_spec_content')
+            
+            if time_tag:
+                # Extract the date part
+                date_match = re.search(r'\d{2}/\d{2}/\d{4}', time_tag.get_text())
+                
+                # Extract the time from the span with class 'concert_details_date_time'
+                time_tag_span = time_tag.find('span', class_='concert_details_date_time')
+                
+                if date_match and time_tag_span:
+                    event_date = date_match.group()  # Extracts the date in 'dd/mm/yyyy' format
+                    event_time = time_tag_span.get_text(strip=True)  # Extracts the time (e.g., '19:00')
+                    
+                    # Combine date and time into a single datetime object
+                    event_datetime_str = f"{event_date} {event_time}"
+                    dt = datetime.strptime(event_datetime_str, '%d/%m/%Y %H:%M')
+                    event_datetime = dt.strftime('%Y-%m-%d %H:%M:%S')
+                    
+            # Append the cleaned event data to results
+            results.append({
+                'title': article_title,
+                'description': clean_description,
+                'link': full_article_link,
+                'location': location,
+                'event_time': event_datetime  # event_time is either the datetime or None
+            })
+
+        return results
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Error occurred during scraping: {str(e)}")
+        return []
+
+    
+if __name__ == '__main__':
+    url = 'https://www.piletilevi.ee/eng/tickets/koik/'
+    events = scrape_events(url)
+    for event in events:
+        print(event)

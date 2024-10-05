@@ -6,6 +6,8 @@ from llm import CategoryClassifier
 from typing import List, Tuple, Dict
 
 from supabase import create_client, Client
+from datetime import datetime
+
 
 supabase_url = 'https://vgxifmuuonfxuwoperyd.supabase.co/'
 supabase_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZneGlmbXV1b25meHV3b3BlcnlkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyODA3MDQzNSwiZXhwIjoyMDQzNjQ2NDM1fQ.jvuAV0rQrjnn8W0ANZOxfgO1B8Hsqx2FENu6X5myE7Q'
@@ -114,11 +116,58 @@ def scrape_events(url: str) -> List[Dict[str, str]]:
             else:
                 clean_description = "No description available"
 
+            # **Extract location**
+            location_tag = article_page_soup.find('a', class_='info_sidebar_component_content_title')
+            if location_tag:
+                location = location_tag.get_text(strip=True)
+            else:
+                location = "No location available"
+
+            # Extract detailed location if available
+            venue_link_tag = article_page_soup.find('a', class_='info_sidebar_component_content_title')
+            
+            if venue_link_tag:
+                venue_page_url = venue_link_tag['href']
+                
+                # Now fetch the venue page
+                venue_response = requests.get(venue_page_url)
+                if venue_response.status_code == 200:
+                    venue_soup = BeautifulSoup(venue_response.content, 'html.parser')
+                    # Find the span that contains the location details
+                    location_details = venue_soup.find_all('span', class_='venue_details_location_detail')
+                    # Concatenate the location details into a full address string
+                    if location_details:
+                        detailed_location = " ".join([detail.get_text(strip=True) for detail in location_details if detail.get_text(strip=True)])
+                        location = detailed_location if detailed_location else location
+
+            # **Extract event time**
+            event_datetime = None  # Initialize event_datetime as None
+            # Find the relevant tag that contains the time details
+            time_tag = article_page_soup.find('div', class_='concert_details_spec_content')
+            
+            if time_tag:
+                # Extract the date part
+                date_match = re.search(r'\d{2}/\d{2}/\d{4}', time_tag.get_text())
+                
+                # Extract the time from the span with class 'concert_details_date_time'
+                time_tag_span = time_tag.find('span', class_='concert_details_date_time')
+                
+                if date_match and time_tag_span:
+                    event_date = date_match.group()  # Extracts the date in 'dd/mm/yyyy' format
+                    event_time = time_tag_span.get_text(strip=True)  # Extracts the time (e.g., '19:00')
+                    
+                    # Combine date and time into a single datetime object
+                    event_datetime_str = f"{event_date} {event_time}"
+                    dt = datetime.strptime(event_datetime_str, '%d/%m/%Y %H:%M')
+                    event_datetime = dt  # Keep as datetime object
+                    
             # Append the cleaned event data to results
             results.append({
                 'title': article_title,
                 'description': clean_description,
-                'link': full_article_link
+                'link': full_article_link,
+                'location': location,
+                'event_time': event_datetime  # event_time is either the datetime or None
             })
 
         return results
@@ -126,6 +175,7 @@ def scrape_events(url: str) -> List[Dict[str, str]]:
     except requests.exceptions.RequestException as e:
         print(f"Error occurred during scraping: {str(e)}")
         return []
+
 
 # Route to scrape events
 @app.route('/scrape', methods=['GET'])
@@ -140,6 +190,7 @@ def scrape_titles():
         return jsonify({"error": "No events found or an error occurred during scraping."}), 404
 
 # Route to process and classify scraped events
+# Route to process and classify scraped events
 @app.route('/process_events', methods=['GET'])
 def process_events():
     threshold = request.args.get('threshold', default=0.3, type=float)
@@ -152,6 +203,8 @@ def process_events():
         title = event['title']
         description = event['description']
         link = event['link']
+        location = event['location']
+        event_time = event['event_time']
 
         print(f"Processing event: {title}")
 
@@ -176,7 +229,9 @@ def process_events():
         event_data = {
             'title': title,
             'description': description,
-            'link': link
+            'link': link,
+            'location': location,
+            'event_time': event_time.isoformat() if event_time else None  # Convert datetime to string
         }
 
         try:
@@ -216,8 +271,6 @@ def process_events():
 
 
 
-
-
 # Route to classify a single event description
 @app.route('/classify', methods=['POST'])
 def classify_event():
@@ -238,21 +291,21 @@ def classify_event():
 
     # Find matching companies based on the classification
     matching_companies = find_companies_with_probabilities_above_threshold(
-        classification, database, threshold
+        classification, threshold
     )
 
     # **Print matching companies**
     if matching_companies:
         print("Matching Companies:")
-        for company, probability in matching_companies:
-            print(f" - {company}: {probability}")
+        for _, company_name, probability in matching_companies:
+            print(f" - {company_name}: {probability}")
     else:
         print("No matching companies found.")
 
     # Prepare the response
     results = [
-        {'company': company, 'probability': probability}
-        for company, probability in matching_companies
+        {'company': company_name, 'probability': probability}
+        for _, company_name, probability in matching_companies
     ]
 
     return jsonify({'matching_companies': results})
