@@ -5,6 +5,13 @@ from flask import Flask, request, jsonify
 from llm import CategoryClassifier
 from typing import List, Tuple, Dict
 
+from supabase import create_client, Client
+
+supabase_url = 'https://vgxifmuuonfxuwoperyd.supabase.co/'
+supabase_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZneGlmbXV1b25meHV3b3BlcnlkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyODA3MDQzNSwiZXhwIjoyMDQzNjQ2NDM1fQ.jvuAV0rQrjnn8W0ANZOxfgO1B8Hsqx2FENu6X5myE7Q'
+
+supabase: Client = create_client(supabase_url, supabase_key)
+
 app = Flask(__name__)
 
 # Define the restaurant categories
@@ -18,43 +25,41 @@ categories = [
 # Initialize the classifier with a translation function (if necessary)
 classifier = CategoryClassifier(category_list=categories, threshold=0.0)
 
-# Define a sample company database with company names and categories
-database = [
-    ("Burger World", ["fast food", "burger", "casual dining"]),
-    ("Sushi Heaven", ["sushi", "japanese", "fine dining"]),
-    ("Steak House", ["steakhouse", "fine dining", "rooftop"]),
-    ("Green Delight", ["vegan", "vegetarian", "organic"]),
-    ("Pizza Palace", ["italian", "casual dining", "takeout"]),
-    ("Seafood Shack", ["seafood", "fine dining", "outdoor dining"]),
-]
-
 # Function to find companies with probabilities above the given threshold
 def find_companies_with_probabilities_above_threshold(
     classification: Dict[str, float],
-    database: List[Tuple[str, List[str]]],  # Companies have multiple categories
     threshold: float
-) -> List[Tuple[str, float]]:
+) -> List[Tuple[int, str, float]]:
     matching_companies = []
 
-    # Loop through the database, where each company has multiple categories
-    for company, categories in database:
-        # Initialize a list to store probabilities for this company's categories
-        relevant_probabilities = []
+    try:
+        # Fetch all companies and their categories
+        response = supabase.rpc('get_companies_with_categories').execute()
+        companies = response.data
 
-        # Loop through the company's categories
-        for category in categories:
-            # Check if the category exists in the classification dictionary
-            if category in classification:
-                # Check if the probability for that category is above the threshold
-                if classification[category] >= threshold:
+        for company in companies:
+            company_id = company['id']
+            company_name = company['name']
+            company_categories = company['categories']  # List of category names
+
+            relevant_probabilities = []
+            for category in company_categories:
+                if category in classification and classification[category] >= threshold:
                     relevant_probabilities.append(classification[category])
 
-        # If the company has relevant categories, calculate relevance (e.g., max probability)
-        if relevant_probabilities:
-            max_probability = max(relevant_probabilities)  # Using max probability for simplicity
-            matching_companies.append((company, max_probability))
+            if relevant_probabilities:
+                max_probability = max(relevant_probabilities)
+                matching_companies.append((company_id, company_name, max_probability))
+
+    except Exception as e:
+        print(f"Exception occurred while fetching companies: {e}")
+        # Optionally, you can log the exception or handle it as needed
 
     return matching_companies
+
+
+
+
 
 # Function to scrape events
 def scrape_events(url: str) -> List[Dict[str, str]]:
@@ -156,23 +161,51 @@ def process_events():
 
         # Find matching companies based on the classification
         matching_companies = find_companies_with_probabilities_above_threshold(
-            classification, database, threshold
+            classification, threshold
         )
 
         # **Print matching companies**
         if matching_companies:
             print("Matching Companies:")
-            for company, probability in matching_companies:
-                print(f" - {company}: {probability}")
+            for _, company_name, probability in matching_companies:
+                print(f" - {company_name}: {probability}")
         else:
             print("No matching companies found.")
+
+        # Insert event into the database
+        event_data = {
+            'title': title,
+            'description': description,
+            'link': link
+        }
+
+        try:
+            response = supabase.table('events').insert(event_data).execute()
+            event_id = response.data[0]['id']
+        except Exception as e:
+            print(f"Error inserting event: {e}")
+            continue  # Skip to the next event
+
+        # Insert matches into the database
+        if matching_companies:
+            match_records = []
+            for company_id, _, probability in matching_companies:
+                match_records.append({
+                    'event_id': event_id,
+                    'company_id': company_id,
+                    'probability': probability
+                })
+            try:
+                response = supabase.table('event_company_matches').insert(match_records).execute()
+            except Exception as e:
+                print(f"Error inserting matches: {e}")
 
         # Prepare the result for this event
         event_result = {
             'event': event,
             'matching_companies': [
-                {'company': company, 'probability': probability}
-                for company, probability in matching_companies
+                {'company': company_name, 'probability': probability}
+                for _, company_name, probability in matching_companies
             ]
         }
 
@@ -180,6 +213,10 @@ def process_events():
         print("=" * 50)  # Separator between events
 
     return jsonify(all_results)
+
+
+
+
 
 # Route to classify a single event description
 @app.route('/classify', methods=['POST'])
@@ -219,6 +256,34 @@ def classify_event():
     ]
 
     return jsonify({'matching_companies': results})
+
+@app.route('/event/<int:event_id>/companies', methods=['GET'])
+def get_companies_for_event(event_id):
+    # Fetch event details
+    try:
+        response = supabase.table('events').select('*').eq('id', event_id).execute()
+        event_data = response.data
+        if not event_data:
+            return jsonify({"error": "Event not found"}), 404
+        event = event_data[0]
+    except Exception as e:
+        print(f"Error fetching event: {e}")
+        return jsonify({"error": "Error fetching event"}), 500
+
+    # Fetch matching companies
+    try:
+        response = supabase.rpc('get_event_companies', {'event_id_input': event_id}).execute()
+        matching_companies = response.data
+    except Exception as e:
+        print(f"Error fetching matching companies: {e}")
+        return jsonify({"error": "Error fetching matching companies"}), 500
+
+    return jsonify({
+        'event': event,
+        'matching_companies': matching_companies
+    })
+
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
