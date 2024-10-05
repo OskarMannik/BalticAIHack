@@ -1,48 +1,17 @@
+import requests
 from llm import CategoryClassifier
 from typing import List, Tuple, Dict
 
 # Define the restaurant categories
 categories = [
-    "fast food",
-    "food truck",
-    "casual dining",
-    "fine dining",
-    "takeout",
-    "italian",
-    "chinese",
-    "japanese",
-    "thai",
-    "sushi",
-    "steakhouse",
-    "burger",
-    "seafood",
-    "vegan",
-    "vegetarian",
-    "romantic",
-    "rooftop",
-    "sports bar",
-    "outdoor dining",
-    "breakfast",
-    "café",
-    "wine"
+    "fast food", "food truck", "casual dining", "fine dining", "takeout",
+    "italian", "chinese", "japanese", "thai", "sushi", "steakhouse", "burger",
+    "seafood", "vegan", "vegetarian", "romantic", "rooftop", "sports bar",
+    "outdoor dining", "breakfast", "café", "wine"
 ]
 
-# Initialize the classifier with a translation function
+# Initialize the classifier with a translation function (if necessary)
 classifier = CategoryClassifier(category_list=categories, threshold=0.0)
-
-# Sample text, which could be in English or Estonian
-text_to_classify = (
-    "Sat, 5 October 17.00 Heino Eller Music School, Tubin Hall Better than Brahms? Concert and conversation panel Tõnu Kalm (clarinet) Mihhail Gerts (piano) Age Juurikas (piano) Programme: Brahms. Clarinet sonata no 1 in F minor op. 120/1 Tubin. Piano sonata no 1 in E major ETW 31 Tubin is a genius. He is better than Brahms, better than me, and certainly better than Eller, said Artur Kapp about Tubin. To unravel this statement, Joonas Hellerma will be joined in conversation by composers Rasmus Puur and Erkki-Sven Tüür. Together, we will find out if this is true. The concert presents Johannes Brahms' first clarinet sonata and Eduard Tubin's first piano sonata. Performed by Tõnu Kalm, Mihhail Gerts and Age Juurikas."
-)
-
-#text_to_classify_translated = classifier.translate_to_english(text_to_classify)
-#print(text_to_classify_translated)
-
-# Classify the translated text and get probabilities
-classification = classifier.get_probabilities(text_to_classify)#should be text_to_classify_translated
-
-# Print the classification results
-print("Classification Results:", classification)
 
 # Define a sample company database with company names and categories
 database = [
@@ -57,7 +26,7 @@ database = [
 # Function to find companies with probabilities above the given threshold
 def find_companies_with_probabilities_above_threshold(
     classification: Dict[str, float],
-    database: List[Tuple[str, List[str]]],  # Changed to handle a list of categories for each company
+    database: List[Tuple[str, List[str]]],  # Companies have multiple categories
     threshold: float
 ) -> List[Tuple[str, float]]:
     """
@@ -87,14 +56,43 @@ def find_companies_with_probabilities_above_threshold(
 
     return matching_companies
 
-# Example usage: Find companies with probabilities >= 0.3
+# Function to process event descriptions from the /scrape endpoint
+def process_scrape_data(scrape_url: str, threshold: float):
+    # Fetch data from the /scrape endpoint
+    response = requests.get(scrape_url)
+    
+    # Check if the request was successful
+    if response.status_code == 200:
+        events = response.json()  # Assume the endpoint returns JSON data
+        
+        for event in events:
+            title = event['title']
+            description = event['description']
+            link = event['link']
+            
+            print(f"Processing event: {title}")
+            
+            # Classify the description using the CategoryClassifier
+            classification = classifier.get_probabilities(description)
+            print(f"Classification Results: {classification}")
+            
+            # Find matching companies based on the classification
+            matching_companies = find_companies_with_probabilities_above_threshold(
+                classification, database, threshold
+            )
+            
+            # Output the results for each event
+            print(f"Companies with probabilities >= {threshold}:")
+            for company, probability in matching_companies:
+                print(f"{company}: {probability}")
+            
+            print("="*50)  # Separator between events
+    else:
+        print(f"Failed to fetch data from {scrape_url}. Status code: {response.status_code}")
 
-# Example usage: Find companies with any relevant category probabilities >= 0.5
+# Example usage
+scrape_url = "http://127.0.0.1:5000/scrape"
 threshold = 0.3
-matching_companies = find_companies_with_probabilities_above_threshold(classification, database, threshold)
 
-# Print the results
-print("Companies with probabilities >= 0.3:")
-for company, probability in matching_companies:
-    print(f"{company}: {probability}")
-
+# Process the event descriptions from the /scrape endpoint
+process_scrape_data(scrape_url, threshold)
