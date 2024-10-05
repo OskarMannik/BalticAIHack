@@ -23,18 +23,25 @@ class CategoryClassifier():
                 {
                     "role": "system",
                     "content": (
-                        f"You are an AI classifier. Classify the following text into the following categories: "
-                        f"{str(self.category_list)} and give the probability for each. "
-                        "Respond in this format: <category>: <probability>, <category>: <probability>, ..."
+                        "You are an AI model designed to analyze events and predict how they will impact various industries or business services. "
+                        "Given a specific event description, your task is to assess the likelihood of increased demand for specific business services or industries "
+                        "and provide an independent probability score (between 0 and 1) for each of the following categories: "
+                        f"{str(self.category_list)}. "
+                        "Each probability should reflect how likely it is that the corresponding business or service will experience an increase in demand based on the event described. "
+                        "Each probability should be independent of the others, and the sum of probabilities across categories does not need to equal 1. "
+                        "Please provide your response in the following format, and only in this format: <category>: <probability>, <category>: <probability>, ... "
+                        "Ensure the probabilities are formatted as numbers between 0 and 1, and that they correspond to each category. "
+                        "Do not provide any additional information or text beyond the category names and their probabilities."
                     )
                 },
                 {
                     "role": "user",
-                    "content": text,
+                    "content": text,  # The text that needs classification
                 }
             ],
             model=self.model_name,
         )
+
 
         # Process the response from the model
         response_text = response.choices[0].message.content.strip()
