@@ -6,18 +6,49 @@ from groq import Groq
 class CategoryClassifier():
     def __init__(self, category_list, api_key=None, model_name="llama-3.1-8b-instant", threshold=0.0):
         # Initialize the Groq API client
-        self.api_key = "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"  # use your actual API key here
+        self.api_key = "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"#api_key if api_key else "your_groq_api_key"  # Use your actual API key
         self.client = Groq(api_key=self.api_key)
         self.model_name = model_name
         self.category_list = category_list
         self.threshold = threshold
 
-    def get_probabilities(self, text):
+    def translate_to_english(self, text: str) -> str:
+        """
+        Detect if the text is in Estonian and translate it to English using the Groq API and the LLaMA model.
+        """
+        # Send request to the Groq API for translation
+        translation_response = self.client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an AI model trained to translate text from Estonian to English. "
+                        "If the given text is in Estonian, translate it to English. If it's already in English, leave it unchanged. "
+                        "Respond only with the translated text."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": text,  # The event description goes here
+                }
+            ],
+            model=self.model_name,
+        )
+
+        # Get the translated response from the model
+        translated_text = translation_response.choices[0].message.content.strip()
+
+        return translated_text
+
+    def get_probabilities(self, text: str) -> dict:
         """
         Classifies the text into categories with probabilities using the Groq API.
         This is the core functionality that can be exposed for external use.
         """
-        # Send request to the Groq API with user input text and predefined categories
+        # First, translate the text if necessary
+        translated_text = self.translate_to_english(text)
+
+        # Send request to the Groq API with the translated text and predefined categories
         response = self.client.chat.completions.create(
             messages=[
                 {
@@ -35,7 +66,7 @@ class CategoryClassifier():
                 },
                 {
                     "role": "user",
-                    "content": text,  # The event description goes here
+                    "content": translated_text,  # The translated event description goes here
                 }
             ],
             model=self.model_name,
