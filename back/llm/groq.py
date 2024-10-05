@@ -6,7 +6,7 @@ from groq import Groq
 class CategoryClassifier():
     def __init__(self, category_list, api_key=None, model_name="llama-3.1-8b-instant", threshold=0.0):
         # Initialize the Groq API client
-        self.api_key ="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" #api_key if api_key else os.environ.get("../../GROQ_API_KEY")
+        self.api_key = "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"  # use your actual API key here
         self.client = Groq(api_key=self.api_key)
         self.model_name = model_name
         self.category_list = category_list
@@ -23,25 +23,23 @@ class CategoryClassifier():
                 {
                     "role": "system",
                     "content": (
-                        "You are an AI model designed to analyze events and predict how they will impact various industries or business services. "
-                        "Given a specific event description, your task is to assess the likelihood of increased demand for specific business services or industries "
-                        "and provide an independent probability score (between 0 and 1) for each of the following categories: "
+                        "You are an AI model specialized in predicting market trends for the restaurant industry. Given an event description, "
+                        "your task is to analyze the event and determine which types of restaurants are most likely to benefit from the event. "
+                        "Specifically, classify the event into the following restaurant categories and predict the likelihood (between 0 and 1) "
+                        "that each category will experience an increase in demand due to the event. The categories are: "
                         f"{str(self.category_list)}. "
-                        "Each probability should reflect how likely it is that the corresponding business or service will experience an increase in demand based on the event described. "
-                        "Each probability should be independent of the others, and the sum of probabilities across categories does not need to equal 1. "
-                        "Please provide your response in the following format, and only in this format: <category>: <probability>, <category>: <probability>, ... "
-                        "Ensure the probabilities are formatted as numbers between 0 and 1, and that they correspond to each category. "
-                        "Do not provide any additional information or text beyond the category names and their probabilities."
+                        "Each category should have an independent probability, and the probabilities do not need to sum to 1. "
+                        "Respond **only** with a dictionary in this format: {<category>: <probability>, <category>: <probability>, ...}. "
+                        "Do not provide any explanations, just the dictionary output."
                     )
                 },
                 {
                     "role": "user",
-                    "content": text,  # The text that needs classification
+                    "content": text,  # The event description goes here
                 }
             ],
             model=self.model_name,
         )
-
 
         # Process the response from the model
         response_text = response.choices[0].message.content.strip()
@@ -58,9 +56,12 @@ class CategoryClassifier():
                 probability = re.sub(r'[^\d.]', '', probability)
                 probability_value = float(probability.strip())
 
+                # Clean the category by removing any quotes (' or ") and extra spaces
+                cleaned_category = category.strip("'\" ").lower()  # Remove quotes and spaces, make it lowercase
+
                 # Only add categories with probability greater than the threshold
                 if probability_value > self.threshold:
-                    classification_results[category.strip()] = probability_value
+                    classification_results[cleaned_category] = probability_value
 
             except ValueError:
                 # Handle case where the response format is not as expected

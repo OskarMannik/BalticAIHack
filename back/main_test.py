@@ -1,26 +1,29 @@
 from llm import CategoryClassifier
+from typing import List, Tuple, Dict
 
 categories = [
-    "Transportation",
-    "Catering",
-    "Customer Service",
-    "Security",
-    "Event Management",
-    "Marketing",
-    "Logistics",
-    "IT Support",
-    "Hotels",
-    "Food Delivery Services",
-    "Healthcare Providers",
-    "Retail",
-    "Advertising",
-    "Cleaning Services",
-    "Travel Agencies",
-    "Real Estate",
-    "Restaurants",
-    "Financial Advisors",
-    "E-Commerce",
-    "Consulting Firms"
+    "fast food",
+    "food truck",
+    "casual dining",
+    "fine dining",
+    "takeout",
+    "italian",
+    "chinese",
+    "japanese",
+    "thai",
+    "sushi",
+    "steakhouse",
+    "burger",
+    "seafood",
+    "vegan",
+    "vegetarian",
+    "romantic",
+    "rooftop",
+    "sports bar",
+    "outdoor dining",
+    "breakfast",
+    "café",
+    "wine"
 ]
     
 # Initialize the classifier
@@ -33,3 +36,41 @@ classification = classifier.get_probabilities(text_to_classify)
     
     # Print the results
 print(classification)
+
+database = [
+    ("Burger World", "fast food"),
+    ("Sushi Heaven", "sushi"),
+    ("Steak House", "steakhouse"),
+    ("Green Delight", "vegan"),
+    ("Pizza Palace", "italian"),
+    ("Seafood Shack", "seafood"),
+]
+
+def find_companies_with_probabilities_above_threshold(
+    classification: Dict[str, float],
+    database: List[Tuple[str, str]],
+    threshold: float
+) -> List[str]:
+    """
+    This function takes a classification dictionary, a database of companies, and a threshold.
+    It returns the names of companies where the category's probability is above the given threshold.
+    """
+    matching_companies = []
+
+    # Loop through the database and match categories with probabilities from the classification
+    for company, category in database:
+        # Check if the category exists in the classification dictionary
+        if category in classification:
+            # Check if the probability for that category is above the threshold
+            if classification[category] >= threshold:
+                matching_companies.append(company)
+
+    return matching_companies
+
+# Example usage: Find companies with probabilities >= 0.3
+threshold = 0.3
+matching_companies = find_companies_with_probabilities_above_threshold(classification, database, threshold)
+
+# Print the results
+print("Companies with probabilities >= 0.3:")
+print(matching_companies)
