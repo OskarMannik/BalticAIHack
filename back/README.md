@@ -4,6 +4,6 @@
 
 `cd back/`
 
-`conda env create -f back/environment.yaml`
+`conda env create -f environment.yaml`
 
-`pip install -r back/requirements.txt`
+`pip install -r requirements.txt`
