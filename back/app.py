@@ -17,12 +17,8 @@ supabase: Client = create_client(supabase_url, supabase_key)
 app = Flask(__name__)
 
 # Define the restaurant categories
-categories = [
-    "fast food", "food truck", "casual dining", "fine dining", "takeout",
-    "italian", "chinese", "japanese", "thai", "sushi", "steakhouse", "burger",
-    "seafood", "vegan", "vegetarian", "romantic", "rooftop", "sports bar",
-    "outdoor dining", "breakfast", "café", "wine"
-]
+categories = ['takeout', 'vegetarian', 'casual dining', 'fast food', 'japanese', 'outdoor dining', 'steakhouse', 'rooftop', 'italian', 'fine dining', 'burger', 'vegan', 'sushi', 'organic', 'seafood']
+
 
 # Initialize the classifier with a translation function (if necessary)
 classifier = CategoryClassifier(category_list=categories, threshold=0.0)
