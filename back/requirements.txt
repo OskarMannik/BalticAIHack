@@ -1,2 +1,6 @@
 groq
 pydantic
+flask
+requests
+bs4
+supabase
