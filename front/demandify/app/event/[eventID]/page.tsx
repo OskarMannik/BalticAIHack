@@ -102,7 +102,7 @@ export default function EventPage({ params }: { params: { eventID: string } }) {
                 adventurous patrons can be segmented based on their preferences and
                 demographics:
               </p>
-              <ul>
+              <ul className="list-disc pl-4">
                 <li className="text-black">
                   Families with Children (30-40% of visitors): Parents may be accompanied
                   by kids aged 4-12, requiring kid-friendly restaurants that cater to
@@ -125,7 +125,7 @@ export default function EventPage({ params }: { params: { eventID: string } }) {
                 </li>
               </ul>
               <p className="text-black">To capitalize on the influx of customers, restaurants could offer:</p>
-              <ul>
+              <ul className="list-disc pl-4">
                 <li className="text-black">
                   Family-friendly dining and entertainment: Kid-centric restaurants with
                   creative menus, arcade games, or activities catering to families may see
@@ -153,14 +153,14 @@ export default function EventPage({ params }: { params: { eventID: string } }) {
                 people) choose to dine out nearby, the projected number of customers for
                 nearby restaurants could reach:
               </p>
-              <ul>
+              <ul className="list-disc pl-4">
                 <li className="text-black">
                   High-side scenario: 635 people (weekly average: 435 people visiting
                   every day, including those dining, weekly total: 3,070-3,120 visitors)
                 </li>
               </ul>
               <p className="text-black">OR</p>
-              <ul>
+              <ul className="list-disc pl-4">
                 <li className="text-black">
                   Mid-estimated scenario: 493 visitors (weekly average: 345 individuals
                   dining after visiting the minigolf park, weekly total: 1,831).
