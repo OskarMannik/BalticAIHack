@@ -27,9 +27,9 @@ export default function Home() {
   return (
     <div className="flex flex-col px-60 w-screen h-screen bg-white">
 
-        <h1 className="text-black text-4xl pt-24">Demandify</h1>
+        <h1 className="text-black text-4xl pt-12">Hi, <span className="text-primary">Burger World</span></h1>
         <h2 className="text-black text-2xl pt-8">Upcoming events:</h2>
-        <p className="text-gray-700">Events, we think would be useful for you</p>
+        <p className="text-gray-700">Events, we think will affect Your business</p>
         <div className="flex flex-row pt-4 overflow-x-scroll">
         {
           events.map((event: EventProps, i) => {
