@@ -22,7 +22,24 @@ export default function Home() {
     relevance: 0.4
   };
 
-  const events: EventProps[] = new Array(8).fill(hcevent);
+
+  // back is deployed but we didn't have time to connect :(
+  const events: EventProps[] = [
+    {
+      id: "68",
+      name: "CuFa RC Drifti ja Vaba Aja Keskuse külastus",
+      startTime: 1701943200,
+      endTime: 1701972000 ,
+      location: "Estonia, Harjumaa, Tallinn, Tuulemaa 20, Tallinn",
+      coverImageURL: "https://vgxifmuuonfxuwoperyd.supabase.co/storage/v1/object/public/diffusion_pictures/diffusion_pictures/event_8.jpg",
+      description: "Mudelautodega driftimine on põnev sõiduharrastus, kus entusiastid võtavad oma väikesed mudelautod ja viivad need piirini, kogedes kontrollitud libisemist, kiirust ja täpset manööverdamist. See dünaamiline tegevus on inspireeritud suurte autospordiürituste driftivõistlustest, kuid mahutatud mudelmaailma, tuues kaasa adrenaliinirikkaid hetki ja tehnilisi väljakutseid.Sõidutehnika on võtmeelement, kus harrastajad õpivad kaalu ülekandmise abil kontrollima mudelauto tagaosas tekkivat libisemist. Käsirooli tehnikat kasutades ja oskuslikult manööverdades loovad driftijad muljetavaldavaid sõidustiile, mõnikord isegi matkides suurte professionaalsete driftivõistlejate trikke.Drifti simulaatorid on põnevad digitaalsed platvormid, mis toovad autospordi kire otse sinu arvutiekraanile. Need realistlikud mängud pakuvad võimalust kogeda driftimise dünaamikat ja oskusi virtuaalselt. Mängijad saavad istuda rooli mitmekesistes sõidukites ning harjutada täpset sõidutehnikat.",
+      labels: [
+        
+      ],
+      relevance: 0.55
+    },
+
+  ];
 
   return (
     <div className="flex flex-col px-60 w-screen h-screen bg-white">

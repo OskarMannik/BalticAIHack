@@ -8,20 +8,17 @@ export default function EventPage({ params }: { params: { eventID: string } }) {
 
   // later fetch through eventID
   const eventData: EventProps = {
-    id: "fd23fce0-c438-4a27-aae5-878ac0c54da1",
-    name: "HTG rebaste ristimine",
-    startTime: 1728054000,
-    endTime: 1728064800,
-    location: "Munga 12, 51007 Tartu, Estonia",
-    coverImageURL: "/olli-the-polite-cat.jpg",
-    description: "The \"HTG rebaste ristimine\" event on September 24, 2020, revolves around the theme of \"Countries.\" During the day, participants (called freshmen) will compete in various Olympic-style challenges, while the evening will culminate in a glamorous Eurovision-inspired show. Each class is assigned a country, and students must wear outfits that match their class color and the country's theme, including specific required items. The event emphasizes creativity and team spirit, with students encouraged to prepare flags, mascots, and costumes, all while refraining from makeup and hairstyling products. They must also carry their school supplies in trash bags instead of backpacks. In the evening, each class must perform a dance routine based on music drawn from their assigned country, with all members required to participate. Additionally, the class must prepare a national anthem, which will be performed at Eurovision, and the entire event is scored to determine the overall winner. Stealing other classes' flags for extra points is allowed but must be done without violence. The day concludes with the Eurovision contest, so students are expected to clear their schedules. Strict rules on health and safety, including hand hygiene and mask usage, are also emphasized.",
+    id: "68",
+    name: "CuFa RC Drifti ja Vaba Aja Keskuse külastus",
+    startTime: 1710691200,
+    endTime: 1733097540 ,
+    location: "Estonia, Harjumaa, Tallinn, Tuulemaa 20, Tallinn",
+    coverImageURL: "https://vgxifmuuonfxuwoperyd.supabase.co/storage/v1/object/public/diffusion_pictures/diffusion_pictures/event_8.jpg",
+    description: "Mudelautodega driftimine on põnev sõiduharrastus, kus entusiastid võtavad oma väikesed mudelautod ja viivad need piirini, kogedes kontrollitud libisemist, kiirust ja täpset manööverdamist. See dünaamiline tegevus on inspireeritud suurte autospordiürituste driftivõistlustest, kuid mahutatud mudelmaailma, tuues kaasa adrenaliinirikkaid hetki ja tehnilisi väljakutseid.Sõidutehnika on võtmeelement, kus harrastajad õpivad kaalu ülekandmise abil kontrollima mudelauto tagaosas tekkivat libisemist. Käsirooli tehnikat kasutades ja oskuslikult manööverdades loovad driftijad muljetavaldavaid sõidustiile, mõnikord isegi matkides suurte professionaalsete driftivõistlejate trikke.Drifti simulaatorid on põnevad digitaalsed platvormid, mis toovad autospordi kire otse sinu arvutiekraanile. Need realistlikud mängud pakuvad võimalust kogeda driftimise dünaamikat ja oskusi virtuaalselt. Mängijad saavad istuda rooli mitmekesistes sõidukites ning harjutada täpset sõidutehnikat.",
     labels: [
-      {
-        labelName: "transport",
-        labelColor: "#32a852"
-      }
+      
     ],
-    relevance: 0.85
+    relevance: 0.55
   };
 
   return <div className="px-48 pt-24 w-screen min-h-screen bg-white">
